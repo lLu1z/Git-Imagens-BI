@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+    html, body { margin:0; height:100%; font-family:Arial,sans-serif; }
+    .card { height:100%; box-sizing:border-box; background:#5F9653;
+            border:4px solid #0F513A; border-radius:20px; color:#fff;
+            display:flex; justify-content:space-around; align-items:center; padding:8px; }
+    .item { text-align:center; }
+    .nome { font-size:.9em; opacity:.9; }
+    .val  { font-size:1.6em; font-weight:bold; }
+    .pct  { font-size:1em; }
+    .up   { color:#d6ffd0; }
+    .down { color:#ffd0d0; }
+    </style>
+</head>
+    <body>
+        <div class="card">
+        <div class="item"><div class="nome">USD</div><div class="val" id="val-usd">...</div><div class="pct" id="pct-usd"></div></div>
+        <div class="item"><div class="nome">EUR</div><div class="val" id="val-eur">...</div><div class="pct" id="pct-eur"></div></div>
+        <div class="item"><div class="nome">BTC</div><div class="val" id="val-btc">...</div><div class="pct" id="pct-btc"></div></div>
+        </div>
+
+            <script>
+            function atualizarElementoTicker(idVal, idPct, valor, pct) {
+            document.getElementById(idVal).textContent = valor;
+            const el = document.getElementById(idPct);
+            el.textContent = (pct > 0 ? "▲ " : pct < 0 ? "▼ " : "") + pct.toFixed(2) + "%";
+            el.className = "pct " + (pct >= 0 ? "up" : "down");
+            }
+
+            async function carregar() {
+            try {
+                const res = await fetch("https://economia.awesomeapi.com.br/last/USD-BRL,EUR-BRL,BTC-BRL");
+                const d = await res.json();
+                const fmt = (v, casas) => parseFloat(v).toLocaleString("pt-BR",
+                { style: "currency", currency: "BRL", minimumFractionDigits: casas, maximumFractionDigits: casas });
+
+                atualizarElementoTicker("val-usd", "pct-usd", fmt(d.USDBRL.bid, 4), parseFloat(d.USDBRL.pctChange));
+                atualizarElementoTicker("val-eur", "pct-eur", fmt(d.EURBRL.bid, 4), parseFloat(d.EURBRL.pctChange));
+                atualizarElementoTicker("val-btc", "pct-btc", fmt(d.BTCBRL.bid, 0), parseFloat(d.BTCBRL.pctChange));
+            } catch (e) {
+                document.getElementById("val-usd").textContent = "Indisponível";
+            }
+            }
+
+            carregar();
+            setInterval(carregar, 60000); // atualiza a cada 1 minuto
+            </script>
+    </body>
+</html>
